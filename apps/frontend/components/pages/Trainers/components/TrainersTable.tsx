@@ -1,4 +1,5 @@
 import type { TrainerDto } from "@repo/api";
+import { AppPages } from "@repo/api/constants";
 import {
   Table,
   TableBody,
@@ -7,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/table";
+import Link from "next/link";
 import { FC } from "react";
 
 import { CertificationsBadges } from "./CertificationsBadges";
@@ -29,7 +31,12 @@ export const TrainersTable: FC<Props> = ({ trainers }) => (
       {trainers.map((trainer) => (
         <TableRow key={trainer.id}>
           <TableCell className="font-medium">
-            {trainer.firstName} {trainer.lastName}
+            <Link
+              href={AppPages.TrainerDetails(trainer.id)}
+              className="hover:underline"
+            >
+              {trainer.firstName} {trainer.lastName}
+            </Link>
           </TableCell>
           <TableCell className="text-muted-foreground">
             {trainer.email}
