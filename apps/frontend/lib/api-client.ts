@@ -28,3 +28,15 @@ export const apiPost = async <T>(path: string, body: unknown): Promise<T> => {
   }
   return res.json() as Promise<T>;
 };
+
+export const apiPatch = async <T>(path: string, body: unknown): Promise<T> => {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new ApiError(res.status, `PATCH ${path} → ${res.status}`);
+  }
+  return res.json() as Promise<T>;
+};

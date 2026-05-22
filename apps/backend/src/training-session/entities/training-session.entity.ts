@@ -46,6 +46,9 @@ export class TrainingSessionEntity extends BaseEntity {
   @Column({ type: "integer" })
   capacity!: number;
 
+  @Column({ type: "text", nullable: true })
+  cancellationReason!: string | null;
+
   @ManyToOne(() => TrainerEntity, (trainer) => trainer.sessions, {
     nullable: false,
     onDelete: "CASCADE",

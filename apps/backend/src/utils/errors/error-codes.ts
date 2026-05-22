@@ -15,6 +15,7 @@ export const ErrorCode = {
 
   BookingAlreadyExists: "BOOKING_ALREADY_EXISTS",
   TrainingSessionNotFound: "TRAINING_SESSION_NOT_FOUND",
+  TrainingSessionNotPending: "TRAINING_SESSION_NOT_PENDING",
   TrainerNotFound: "TRAINER_NOT_FOUND",
 } as const;
 
