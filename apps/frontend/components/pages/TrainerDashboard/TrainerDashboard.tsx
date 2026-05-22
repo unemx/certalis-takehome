@@ -48,10 +48,7 @@ export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
     isLoading: isAllSessionsLoading,
   } = useTrainingSessions({ trainerId });
 
-  const isLoading = isUpcomingLoading || isAllSessionsLoading;
-  const error = upcomingError ?? allSessionsError;
-
-  if (isLoading) {
+  if (isUpcomingLoading) {
     return (
       <main className="mx-auto max-w-5xl px-6 py-12">
         <p className="text-sm text-muted-foreground">Chargement…</p>
@@ -59,7 +56,7 @@ export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
     );
   }
 
-  if (error) {
+  if (upcomingError) {
     return (
       <main className="mx-auto max-w-5xl px-6 py-12">
         <p className="text-sm text-destructive">
@@ -73,9 +70,22 @@ export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
   const allSessions = allSessionsData?.items ?? [];
   const totalRevenueCents = getTotalRevenueCents(allSessions);
   const revenueThisMonthCents = getRevenueThisMonthCents(allSessions);
+  const isRevenueUnavailable = Boolean(allSessionsError && !allSessionsData);
 
   const handleExportCsv = () => {
     exportTrainingSessionsToCsv(upcomingSessions);
+  };
+
+  const renderRevenueAmount = (amountCents: number) => {
+    if (isRevenueUnavailable) {
+      return "Indisponible";
+    }
+
+    if (isAllSessionsLoading) {
+      return "Chargement…";
+    }
+
+    return formatEur(amountCents);
   };
 
   return (
@@ -90,7 +100,7 @@ export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold tabular-nums">
-              {formatEur(totalRevenueCents)}
+              {renderRevenueAmount(totalRevenueCents)}
             </p>
           </CardContent>
         </Card>
@@ -103,7 +113,7 @@ export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold tabular-nums">
-              {formatEur(revenueThisMonthCents)}
+              {renderRevenueAmount(revenueThisMonthCents)}
             </p>
           </CardContent>
         </Card>
