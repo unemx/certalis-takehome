@@ -9,14 +9,21 @@ import {
   CardTitle,
 } from "@repo/ui/card";
 import { formatEur } from "@repo/utils";
-import { FC } from "react";
+import { FC, useMemo, useState } from "react";
 
+import { TrainerSessionFilters } from "./components/TrainerSessionFilters";
+import type { TrainerSessionFiltersValues } from "./components/TrainerSessionFilters";
 import { TrainerUpcomingSessionsTable } from "./components/TrainerUpcomingSessionsTable";
 import { exportTrainingSessionsToCsv } from "./utils/export-training-sessions-csv";
 import {
   getRevenueThisMonthCents,
   getTotalRevenueCents,
 } from "./utils/trainer-revenue";
+import {
+  buildTrainingSessionsQueryParams,
+  formatFilteredSessionsDescription,
+  hasActiveSessionFilters,
+} from "./utils/trainer-session-filters";
 
 import { useTrainingSessions } from "@/services/api/training-session/training-session";
 
@@ -33,22 +40,29 @@ const formatLocalDateISO = (date: Date): string => {
 };
 
 export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
-  const today = formatLocalDateISO(new Date());
-  const {
-    data: upcomingData,
-    error: upcomingError,
-    isLoading: isUpcomingLoading,
-  } = useTrainingSessions({
-    trainerId,
-    from: today,
+  const defaultFrom = useMemo(() => formatLocalDateISO(new Date()), []);
+  const [filters, setFilters] = useState<TrainerSessionFiltersValues>({
+    status: "",
+    from: defaultFrom,
+    to: "",
   });
+  const queryParams = useMemo(
+    () => buildTrainingSessionsQueryParams(trainerId, filters),
+    [trainerId, filters],
+  );
+  const filtersActive = hasActiveSessionFilters(filters, defaultFrom);
+  const {
+    data: sessionsData,
+    error: sessionsError,
+    isLoading: isSessionsLoading,
+  } = useTrainingSessions(queryParams);
   const {
     data: allSessionsData,
     error: allSessionsError,
     isLoading: isAllSessionsLoading,
   } = useTrainingSessions({ trainerId });
 
-  if (isUpcomingLoading) {
+  if (isSessionsLoading) {
     return (
       <main className="mx-auto max-w-5xl px-6 py-12">
         <p className="text-sm text-muted-foreground">Chargement…</p>
@@ -56,7 +70,7 @@ export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
     );
   }
 
-  if (upcomingError) {
+  if (sessionsError) {
     return (
       <main className="mx-auto max-w-5xl px-6 py-12">
         <p className="text-sm text-destructive">
@@ -66,14 +80,16 @@ export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
     );
   }
 
-  const upcomingSessions = upcomingData?.items ?? [];
+  const visibleSessions = sessionsData?.items ?? [];
+  const total = sessionsData?.total ?? 0;
+  const description = formatFilteredSessionsDescription(total, filtersActive);
   const allSessions = allSessionsData?.items ?? [];
   const totalRevenueCents = getTotalRevenueCents(allSessions);
   const revenueThisMonthCents = getRevenueThisMonthCents(allSessions);
   const isRevenueUnavailable = Boolean(allSessionsError && !allSessionsData);
 
   const handleExportCsv = () => {
-    exportTrainingSessionsToCsv(upcomingSessions);
+    exportTrainingSessionsToCsv(visibleSessions);
   };
 
   const renderRevenueAmount = (amountCents: number) => {
@@ -124,17 +140,14 @@ export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1.5">
               <CardTitle>Dashboard formateur</CardTitle>
-              <CardDescription>
-                {upcomingData?.total ?? 0} session
-                {(upcomingData?.total ?? 0) > 1 ? "s" : ""} à venir
-              </CardDescription>
+              <CardDescription>{description}</CardDescription>
             </div>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={handleExportCsv}
-              disabled={upcomingSessions.length === 0}
+              disabled={visibleSessions.length === 0}
               aria-label="Exporter les sessions au format CSV"
             >
               Exporter CSV
@@ -142,12 +155,15 @@ export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
           </div>
         </CardHeader>
         <CardContent>
-          {upcomingSessions.length === 0 ? (
+          <TrainerSessionFilters values={filters} onChange={setFilters} />
+          {visibleSessions.length === 0 ? (
             <p className="py-12 text-center text-sm text-muted-foreground">
-              Aucune session à venir pour ce formateur.
+              {filtersActive
+                ? "Aucune session ne correspond aux filtres."
+                : "Aucune session à venir pour ce formateur."}
             </p>
           ) : (
-            <TrainerUpcomingSessionsTable sessions={upcomingSessions} />
+            <TrainerUpcomingSessionsTable sessions={visibleSessions} />
           )}
         </CardContent>
       </Card>
