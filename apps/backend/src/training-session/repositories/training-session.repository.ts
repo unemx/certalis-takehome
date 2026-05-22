@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import type { QueryTrainingSessionsDto } from "@repo/api";
+import { TrainingSessionStatus } from "@repo/api/constants";
 import { DataSource } from "typeorm";
 
 import { BaseRepository } from "../../utils/helpers/base-repository";
@@ -64,5 +65,29 @@ export class TrainingSessionRepository extends BaseRepository<TrainingSessionEnt
         "trainerId",
       ],
     });
+  }
+
+  async findByIdWithBookingCount(
+    id: string,
+  ): Promise<TrainingSessionForList | null> {
+    const session = await this.repository
+      .createQueryBuilder("session")
+      .innerJoinAndSelect("session.trainer", "trainer")
+      .loadRelationCountAndMap("session.bookingCount", "session.bookings")
+      .where("session.id = :id", { id })
+      .getOne();
+
+    return session as unknown as TrainingSessionForList | null;
+  }
+
+  async cancelPendingSession(
+    id: string,
+    reason: string,
+  ): Promise<BaseTrainingSession> {
+    await this.repository.update(id, {
+      status: TrainingSessionStatus.Cancelled,
+      cancellationReason: reason,
+    });
+    return this.findByIdOrFail(id);
   }
 }

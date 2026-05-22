@@ -35,5 +35,6 @@ export const ApiRoutes = {
   trainerById: (id: string) => `/trainers/${id}`,
   trainingSessions: "/training-sessions",
   trainingSessionById: (id: string) => `/training-sessions/${id}`,
+  trainingSessionCancel: (id: string) => `/training-sessions/${id}/cancel`,
   bookings: "/bookings",
 } as const;

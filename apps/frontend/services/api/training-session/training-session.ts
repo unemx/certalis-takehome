@@ -1,10 +1,13 @@
-
-import type { PageDto, TrainingSessionDto } from "@repo/api";
+import type {
+  CancelTrainingSessionDto,
+  PageDto,
+  TrainingSessionDto,
+} from "@repo/api";
 import type { TrainingSessionStatus } from "@repo/api/constants";
 import { ApiRoutes } from "@repo/api/constants";
 import useSWR, { mutate } from "swr";
 
-import { apiFetcher } from "@/lib/api-client";
+import { apiFetcher, apiPatch } from "@/lib/api-client";
 
 export type UseTrainingSessionsParams = {
   trainerId?: string;
@@ -52,3 +55,15 @@ export const mutateTrainingSessions = () =>
     (key) =>
       typeof key === "string" && key.startsWith(ApiRoutes.trainingSessions),
   );
+
+export const cancelTrainingSession = async (
+  sessionId: string,
+  input: CancelTrainingSessionDto,
+): Promise<TrainingSessionDto> => {
+  const session = await apiPatch<TrainingSessionDto>(
+    ApiRoutes.trainingSessionCancel(sessionId),
+    input,
+  );
+  await mutateTrainingSessions();
+  return session;
+};

@@ -10,6 +10,7 @@ import {
 import { formatDateHuman } from "@repo/utils";
 import { FC } from "react";
 
+import { CancelTrainingSessionDialog } from "@/components/pages/TrainerDashboard/components/CancelTrainingSessionDialog";
 import { TrainingSessionStatusBadge } from "@/components/pages/TrainingSessions/components/TrainingSessionStatusBadge";
 
 type Props = {
@@ -25,6 +26,7 @@ export const TrainerUpcomingSessionsTable: FC<Props> = ({ sessions }) => (
         <TableHead>Lieu</TableHead>
         <TableHead className="text-right">Inscrits</TableHead>
         <TableHead>Statut</TableHead>
+        <TableHead className="text-right">Actions</TableHead>
       </TableRow>
     </TableHeader>
     <TableBody>
@@ -42,6 +44,13 @@ export const TrainerUpcomingSessionsTable: FC<Props> = ({ sessions }) => (
           </TableCell>
           <TableCell>
             <TrainingSessionStatusBadge status={session.status} />
+          </TableCell>
+          <TableCell className="text-right">
+            <CancelTrainingSessionDialog
+              sessionId={session.id}
+              sessionTitle={session.title}
+              status={session.status}
+            />
           </TableCell>
         </TableRow>
       ))}

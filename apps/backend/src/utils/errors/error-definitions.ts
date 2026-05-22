@@ -45,6 +45,10 @@ export const errorDefinition: Record<ErrorCode, ErrorDefinition> = {
     status: HttpStatus.NOT_FOUND,
     message: "Session de formation introuvable",
   },
+  [ErrorCode.TrainingSessionNotPending]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: "Seules les sessions en attente peuvent être annulées",
+  },
   [ErrorCode.TrainerNotFound]: {
     status: HttpStatus.NOT_FOUND,
     message: "Formateur introuvable",
