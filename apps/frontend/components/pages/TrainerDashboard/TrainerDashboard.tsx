@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@repo/ui/button";
 import {
   Card,
   CardContent,
@@ -10,6 +11,7 @@ import {
 import { FC } from "react";
 
 import { TrainerUpcomingSessionsTable } from "./components/TrainerUpcomingSessionsTable";
+import { exportTrainingSessionsToCsv } from "./utils/export-training-sessions-csv";
 
 import { useTrainingSessions } from "@/services/api/training-session/training-session";
 
@@ -52,15 +54,33 @@ export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
 
   const sessions = data?.items ?? [];
 
+  const handleExportCsv = () => {
+    exportTrainingSessionsToCsv(sessions);
+  };
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
       <Card>
         <CardHeader>
-          <CardTitle>Dashboard formateur</CardTitle>
-          <CardDescription>
-            {data?.total ?? 0} session{(data?.total ?? 0) > 1 ? "s" : ""} à
-            venir
-          </CardDescription>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-1.5">
+              <CardTitle>Dashboard formateur</CardTitle>
+              <CardDescription>
+                {data?.total ?? 0} session{(data?.total ?? 0) > 1 ? "s" : ""} à
+                venir
+              </CardDescription>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleExportCsv}
+              disabled={sessions.length === 0}
+              aria-label="Exporter les sessions au format CSV"
+            >
+              Exporter CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {sessions.length === 0 ? (
