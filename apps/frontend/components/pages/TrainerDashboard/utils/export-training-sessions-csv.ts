@@ -10,12 +10,15 @@ const CSV_HEADERS = [
   "status",
 ] as const;
 
+const CSV_FORMULA_PREFIX_PATTERN = /^[=+\-@]/;
+
 const escapeCsvField = (value: string | number): string => {
   const text = String(value);
-  if (/[",\n\r]/.test(text)) {
-    return `"${text.replace(/"/g, '""')}"`;
+  const safeText = CSV_FORMULA_PREFIX_PATTERN.test(text) ? `'${text}` : text;
+  if (/[",\n\r]/.test(safeText)) {
+    return `"${safeText.replace(/"/g, '""')}"`;
   }
-  return text;
+  return safeText;
 };
 
 const buildCsvRow = (fields: (string | number)[]): string =>
