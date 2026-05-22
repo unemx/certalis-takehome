@@ -22,7 +22,7 @@ import { z } from "zod";
 import { cancelTrainingSession } from "@/services/api/training-session/training-session";
 
 const schema = z.object({
-  reason: z.string().min(1, "Le motif est obligatoire"),
+  reason: z.string().trim().min(1, "Le motif est obligatoire"),
 });
 
 type Schema = z.infer<typeof schema>;
