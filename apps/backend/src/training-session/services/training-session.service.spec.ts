@@ -73,4 +73,15 @@ describe("TrainingSessionService", () => {
     expect(result.status).toBe(TrainingSessionStatus.Cancelled);
     expect(result.bookingCount).toBe(2);
   });
+
+  it("rejects cancel when session stops being pending during update", async () => {
+    repository.cancelPendingSession.mockResolvedValue(null);
+
+    await expect(
+      service.cancelTrainingSession("session-1", { reason: "Indisponible" }),
+    ).rejects.toMatchObject({
+      errorCode: "TRAINING_SESSION_NOT_PENDING",
+    });
+    expect(repository.findByIdWithBookingCount).not.toHaveBeenCalled();
+  });
 });

@@ -83,11 +83,19 @@ export class TrainingSessionRepository extends BaseRepository<TrainingSessionEnt
   async cancelPendingSession(
     id: string,
     reason: string,
-  ): Promise<BaseTrainingSession> {
-    await this.repository.update(id, {
-      status: TrainingSessionStatus.Cancelled,
-      cancellationReason: reason,
-    });
+  ): Promise<BaseTrainingSession | null> {
+    const updateResult = await this.repository.update(
+      { id, status: TrainingSessionStatus.Pending },
+      {
+        status: TrainingSessionStatus.Cancelled,
+        cancellationReason: reason,
+      },
+    );
+
+    if (updateResult.affected === 0) {
+      return null;
+    }
+
     return this.findByIdOrFail(id);
   }
 }

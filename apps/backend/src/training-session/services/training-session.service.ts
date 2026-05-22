@@ -46,7 +46,13 @@ export class TrainingSessionService {
       ApiException.with(ErrorCode.TrainingSessionNotPending, { sessionId: id });
     }
 
-    await this.trainingSessionRepository.cancelPendingSession(id, body.reason);
+    const cancelled = await this.trainingSessionRepository.cancelPendingSession(
+      id,
+      body.reason,
+    );
+    if (!cancelled) {
+      ApiException.with(ErrorCode.TrainingSessionNotPending, { sessionId: id });
+    }
 
     const updated =
       await this.trainingSessionRepository.findByIdWithBookingCount(id);
