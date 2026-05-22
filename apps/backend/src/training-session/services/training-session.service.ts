@@ -6,11 +6,13 @@ import type {
   TrainingSessionDto,
 } from "@repo/api";
 import { TrainingSessionStatus } from "@repo/api/constants";
+import { EntityNotFoundError } from "typeorm";
 
 import { ApiException } from "../../utils/errors/api.exception";
 import { ErrorCode } from "../../utils/errors/error-codes";
 import { mapTrainingSessionToDto } from "../mappers/training-session.mapper";
 import { TrainingSessionRepository } from "../repositories/training-session.repository";
+import type { BaseTrainingSession } from "../types/training-session.repository.types";
 
 @Injectable()
 export class TrainingSessionService {
@@ -35,11 +37,15 @@ export class TrainingSessionService {
     id: string,
     body: CancelTrainingSessionDto,
   ): Promise<TrainingSessionDto> {
-    let session;
+    let session: BaseTrainingSession;
     try {
       session = await this.trainingSessionRepository.findByIdOrFail(id);
-    } catch {
-      ApiException.with(ErrorCode.TrainingSessionNotFound, { sessionId: id });
+    } catch (error: unknown) {
+      if (error instanceof EntityNotFoundError) {
+        ApiException.with(ErrorCode.TrainingSessionNotFound, { sessionId: id });
+      }
+
+      throw error;
     }
 
     if (session.status !== TrainingSessionStatus.Pending) {

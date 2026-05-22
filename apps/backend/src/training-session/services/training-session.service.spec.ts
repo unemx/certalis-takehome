@@ -1,5 +1,6 @@
 import { Test } from "@nestjs/testing";
 import { TrainingSessionStatus } from "@repo/api/constants";
+import { EntityNotFoundError } from "typeorm";
 
 import { TrainingSessionService } from "./training-session.service";
 import { TrainingSessionRepository } from "../repositories/training-session.repository";
@@ -58,6 +59,29 @@ describe("TrainingSessionService", () => {
     ).rejects.toMatchObject({
       errorCode: "TRAINING_SESSION_NOT_PENDING",
     });
+    expect(repository.cancelPendingSession).not.toHaveBeenCalled();
+  });
+
+  it("maps a missing session to the training session not found error", async () => {
+    repository.findByIdOrFail.mockRejectedValue(
+      new EntityNotFoundError("TrainingSessionEntity", { id: "missing" }),
+    );
+
+    await expect(
+      service.cancelTrainingSession("missing", { reason: "Indisponible" }),
+    ).rejects.toMatchObject({
+      errorCode: "TRAINING_SESSION_NOT_FOUND",
+    });
+    expect(repository.cancelPendingSession).not.toHaveBeenCalled();
+  });
+
+  it("rethrows unexpected lookup errors", async () => {
+    const lookupError = new Error("database unavailable");
+    repository.findByIdOrFail.mockRejectedValue(lookupError);
+
+    await expect(
+      service.cancelTrainingSession("session-1", { reason: "Indisponible" }),
+    ).rejects.toBe(lookupError);
     expect(repository.cancelPendingSession).not.toHaveBeenCalled();
   });
 
