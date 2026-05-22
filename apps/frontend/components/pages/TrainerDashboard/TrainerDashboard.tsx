@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/ui/card";
-import { formatDateISO } from "@repo/utils";
 import { FC } from "react";
 
 import { TrainerUpcomingSessionsTable } from "./components/TrainerUpcomingSessionsTable";
@@ -18,8 +17,16 @@ type Props = {
   trainerId: string;
 };
 
+const formatLocalDateISO = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
 export const TrainerDashboard: FC<Props> = ({ trainerId }) => {
-  const today = formatDateISO(new Date());
+  const today = formatLocalDateISO(new Date());
   const { data, error, isLoading } = useTrainingSessions({
     trainerId,
     from: today,
